@@ -1,28 +1,32 @@
 import math
 from typing import Generator
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, Query
-from sqlalchemy import asc, desc, and_
+from sqlalchemy import asc, desc, or_
 from werkzeug.security import generate_password_hash
 
 from src.models import RoleModel, ClientModel
 from src.models.user import UserModel
-from src.schemas.user import UserRequestBody, UserRequestParams, OrderType, UserOrderFields, UserResponseModel
+from src.schemas.structures import PasswordUpdate
+from src.schemas.user import CreateUserSchema, GetUserSchema, UserResponseSchema, UpdateUserSchema, DeleteUserSchema
 from src.utils.mappers import UserMapper
+from src.utils.types import UserOrderFields, OrderType
 
 
 class UserService:
-    ROOT_USER_ID = 1
-    DELETE_USER_ID = 2
+    DELETED_USER_ID = 2
 
     def __init__(self, session: Session):
         self.session = session
 
     def create_user(
         self,
-        user_data: UserRequestBody,
-    ) -> UserResponseModel:
-        hashed_password = generate_password_hash(user_data.password)
+        user_data: CreateUserSchema,
+    ) -> UserResponseSchema:
+        hashed_password = generate_password_hash(
+            user_data.password.password
+        )
         user = UserModel(
             **{
                 **user_data.model_dump(),
@@ -36,18 +40,15 @@ class UserService:
             UserModel.id == user.id
         )
 
-        return UserResponseModel.from_orm(query.first())
+        return UserResponseSchema.from_orm(
+            query.first()
+        )
 
     def get_users(
         self,
-        params: UserRequestParams,
-    ) -> tuple[int, list[UserResponseModel]]:
-        query: Query = self._query.filter(
-            UserModel.id not in [
-                self.ROOT_USER_ID,
-                self.DELETE_USER_ID
-            ]
-        )
+        params: GetUserSchema,
+    ) -> tuple[int, list[UserResponseSchema]]:
+        query = self._query
 
         if search := params.search:
             query = query.filter(
@@ -64,7 +65,7 @@ class UserService:
             )
         )
         users = [
-            UserResponseModel.from_orm(user)
+            UserResponseSchema.from_orm(user)
             for user in query.all()
         ]
 
@@ -82,6 +83,52 @@ class UserService:
                 else desc(column)
             )
 
+    def get_user_by_id(
+        self,
+        user_id: int,
+    ) -> UserResponseSchema:
+        user = self._query.filter(UserModel.id == user_id).first()
+
+        return UserResponseSchema.from_orm(user)
+
+    def update_user(
+        self,
+        user_data: UpdateUserSchema,
+        user_id: int,
+    ) -> UserResponseSchema:
+        user: UserModel = self._query.filter(UserModel.id == user_id).first()
+        user_data.validate_password(user.password)
+
+        data = (
+            {
+                **user_data.model_dump(),
+                'password': generate_password_hash(
+                    password=user_data.password.new_password
+                )
+            }
+            if user_data.password is not None
+            else user_data.model_dump()
+        )
+
+        # TODO: протестировать косяк с записью bool в status
+        for key, val in data:
+            setattr(user, key, val)
+
+        self.session.add(user)
+        self.session.flush()
+
+        return UserResponseSchema.from_orm(user)
+
+    def delete_user(
+        self,
+        params: DeleteUserSchema,
+    ) -> bool:
+        self.session.query(UserModel).filter(
+            UserModel.id.in_(params.ids)
+        ).delete()
+
+        return True
+
     @property
     def _query(self) -> Query:
         return (
@@ -92,4 +139,5 @@ class UserService:
             )
             .join(RoleModel, UserModel.role_id == RoleModel.id)
             .join(ClientModel, UserModel.client_id == ClientModel.id)
+            .filter(UserModel.id != self.DELETED_USER_ID)
         )

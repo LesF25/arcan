@@ -1,0 +1,4 @@
+import os
+
+DATABASE_URI = os.getenv('DATABASE_URI')
+TEST_DATABASE_URI = os.getenv('TEST_DATABASE_URI')

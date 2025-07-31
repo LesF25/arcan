@@ -1,0 +1,16 @@
+Flask==3.1.1
+Flask-Pydantic==0.13.1 # dep: pydantic
+
+# Tests
+pytest==8.4.1
+
+# Databases
+SQLAlchemy==2.0.41
+alembic==1.16.4
+psycopg2==2.9.10
+redis==6.2.0
+
+# etc
+phonenumbers==9.0.10
+structlog==25.4.0
+email_validator==2.2.0

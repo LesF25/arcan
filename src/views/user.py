@@ -8,11 +8,16 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from wsgi import app
 from src.structures import Rule
-from . import rules
-from src.schemas.user import GetUserSchema, CreateUserSchema, UpdateUserSchema, DeleteUserSchema
+from src.schemas.user import (
+    GetUserSchema,
+    CreateUserSchema,
+    UpdateUserSchema,
+    DeleteUserSchema,
+)
 from src.services.user import UserService
 from src.utils import json_helpers
-from ..exception import DeleteError
+from src.exception import DeleteError
+from . import rules
 
 
 class BaseUserView(MethodView):

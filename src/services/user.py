@@ -1,15 +1,18 @@
 import math
 from typing import Generator
 
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, Query
 from sqlalchemy import asc, desc, or_
 from werkzeug.security import generate_password_hash
 
-from src.models import RoleModel, ClientModel
-from src.models.user import UserModel
-from src.schemas.structures import PasswordUpdate
-from src.schemas.user import CreateUserSchema, GetUserSchema, UserResponseSchema, UpdateUserSchema, DeleteUserSchema
+from src.models import RoleModel, ClientModel, UserModel
+from src.schemas.user import (
+    CreateUserSchema,
+    GetUserSchema,
+    UserResponseSchema,
+    UpdateUserSchema,
+    DeleteUserSchema,
+)
 from src.utils.mappers import UserMapper
 from src.utils.types import UserOrderFields, OrderType
 

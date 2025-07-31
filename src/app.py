@@ -28,7 +28,7 @@ class Application(Flask):
     def init(
         cls,
         config: type[BaseConfig],
-        rules: Optional[list[Rule]] = None,
+        rules: list[Rule] = None,
     ) -> 'Application':
         db = SQLAlchemyDB(
             uri=make_url(config.DATABASE_URI),
@@ -41,9 +41,7 @@ class Application(Flask):
             config=config,
         )
         instance._register_error_handler()
-
-        if rules:
-            instance._add_url_rules(rules)
+        instance._add_url_rules(rules)
 
         return instance
 

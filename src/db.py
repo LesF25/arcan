@@ -1,6 +1,6 @@
 from typing import Type
 
-from sqlalchemy.engine import create_engine
+from sqlalchemy.engine import create_engine, URL
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -8,10 +8,10 @@ from sqlalchemy.exc import SQLAlchemyError
 class SQLAlchemyDB:
     def __init__(
         self,
-        db_uri: str,
+        uri: URL,
         base_model: Type[DeclarativeBase],
     ) -> None:
-        self._engine = create_engine(db_uri)
+        self._engine = create_engine(uri)
         self._session = sessionmaker(self._engine)
 
         base_model.metadata.create_all(self._engine)

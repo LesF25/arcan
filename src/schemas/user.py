@@ -1,13 +1,13 @@
-from typing import Annotated, Optional, Literal, Any, Callable
+from typing import Optional, Any
 
 import phonenumbers
 from pydantic import (
     BaseModel,
     EmailStr,
     field_validator,
-    model_validator, ConfigDict, Field,
+    model_validator,
+    ConfigDict,
 )
-from pydantic.main import IncEx
 from werkzeug.security import generate_password_hash
 
 from src.utils.types import OrderType, UserOrderFields, RoleName

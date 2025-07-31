@@ -64,7 +64,7 @@ class ClientModel(BaseModel):
 
     __table_args__ = (
         UniqueConstraint(
-            columns=[
+            *[
                 'name',
                 'tax_number',
                 'tax_registration_reason_code',

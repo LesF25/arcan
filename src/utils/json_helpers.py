@@ -3,9 +3,6 @@ import json
 
 import pydantic
 
-from src.models import *
-from src.schemas import *
-
 
 class CustomJsonEncoder(json.JSONEncoder):
     def default(self, obj):

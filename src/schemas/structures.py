@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ValidationError
 
 from src.utils.types import PasswordType
 
@@ -10,7 +10,7 @@ class Password(BaseModel):
     @model_validator(mode='after')
     def _validate_password(self):
         if self.password != self.confirm_password:
-            raise ValueError('Invalid data: Incorrect password')
+            raise ValidationError('Invalid data: Incorrect password')
 
         return self
 

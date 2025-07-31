@@ -13,3 +13,4 @@ redis==6.2.0
 # etc
 phonenumbers==9.0.10
 structlog==25.4.0
+email_validator==2.2.0

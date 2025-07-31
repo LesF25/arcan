@@ -6,7 +6,8 @@ from flask.views import MethodView
 from flask_pydantic import validate
 from sqlalchemy.exc import SQLAlchemyError
 
-from application.app import app, Rule
+from wsgi import app
+from src.structures import Rule
 from . import rules
 from src.schemas.user import GetUserSchema, CreateUserSchema, UpdateUserSchema, DeleteUserSchema
 from src.services.user import UserService
@@ -62,10 +63,7 @@ class UserView(BaseUserView):
             try:
                 success = service.delete_user(query)
             except SQLAlchemyError as e:
-                raise DeleteError(
-                    message='Не удалось удалить ресурс',  #TODO
-                    original_error=str(e),
-                )
+                raise DeleteError(str(e))
 
             response = Response(
                 status=200,

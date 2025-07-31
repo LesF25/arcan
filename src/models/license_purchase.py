@@ -47,7 +47,7 @@ class LicensePurchaseModel(BaseModel):
 
     __table_args__ = (
         UniqueConstraint(
-            columns=[
+            *[
                 'client_id',
                 'component_id',
                 'license_type_id',

@@ -24,7 +24,7 @@ class EventModel(BaseModel):
     # FOREIGN KEYS
     user_id: Mapped[Optional[int]] = mapped_column(
         Integer,
-        ForeignKey('user.id'),
+        ForeignKey('users.id'),
     )
     event_type_id: Mapped[int] = mapped_column(
         Integer,

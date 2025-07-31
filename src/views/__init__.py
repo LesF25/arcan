@@ -1,3 +1,3 @@
-from application.structures import Rule
+from src.structures import Rule
 
 rules: list[Rule] = []

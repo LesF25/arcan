@@ -1,30 +1,32 @@
-import json
 from typing import Callable
 
-import structlog
 from flask import Response
-from sqlalchemy.exc import SQLAlchemyError
+from pydantic import ValidationError
 
-from application.app import app
 from src.exception import DeleteError
 from src.utils import json_helpers
 
-logger = structlog.get_logger(__name__)
-
-__error_handler_registry = {}
+__error_handler_registry: dict[type[Exception], type['BaseErrorHandler']] = {}
 
 
-def get_error_handler_registry() -> dict[Exception, 'BaseErrorHandler']:
+def get_error_handler_registry() -> dict[type[Exception], type['BaseErrorHandler']]:
     return __error_handler_registry
 
 
-def add_error_handler(error: Exception) -> Callable[['BaseErrorHandler'], 'BaseErrorHandler']:
-    def fn_wrapper(cls: 'BaseErrorHandler') -> 'BaseErrorHandler':
-        registry = get_error_handler_registry()
-        if error in registry:
-            raise Exception(f'Error Handler {error.__name__} allready register')
+def get_handler_by_error(error: Exception) -> 'BaseErrorHandler':
+    registry = get_error_handler_registry()
+    error_handler = registry.get(type(error), DefaultErrorHandler)
 
-        registry[error] = cls
+    return error_handler()
+
+
+def add_error_handler(error_type: type[Exception]) -> Callable[[type['BaseErrorHandler']], type['BaseErrorHandler']]:
+    def fn_wrapper(cls: type['BaseErrorHandler']) -> type['BaseErrorHandler']:
+        registry = get_error_handler_registry()
+        if error_type in registry:
+            raise Exception(f'Error Handler {error_type} allready register')
+
+        registry[error_type] = cls
         return cls
 
     return fn_wrapper
@@ -38,23 +40,8 @@ class BaseErrorHandler:
         raise NotImplementedError
 
 
-@add_error_handler(SQLAlchemyError)
-class SQLAlchemyErrorHandler(BaseErrorHandler):
-    def handle(
-        self,
-        error: Exception,
-    ) -> Response:
-        response = Response(
-            response=json_helpers.dumps({
-                'error': str(error)
-            }),
-            status=500,
-        )
-
-        return response
-
-
 @add_error_handler(ValueError)
+@add_error_handler(ValidationError)
 class ValueErrorHandler(BaseErrorHandler):
     def handle(
         self,
@@ -62,7 +49,11 @@ class ValueErrorHandler(BaseErrorHandler):
     ) -> Response:
         response = Response(
             response=json_helpers.dumps({
-                'error': str(error)
+                'message': (
+                    'Your request contains invalid data. '
+                    'Please check the provided details.'
+                ),
+                'detail': str(error)
             }),
             status=400,
         )
@@ -77,8 +68,14 @@ class DeleteErrorHandler(BaseErrorHandler):
         error: Exception,
     ) -> Response:
         response = Response(
-            # Исключение содержит json.dumps
-            response=str(error),
+            response=json_helpers.dumps({
+                'success': False,
+                'message': (
+                    "Couldn't delete the resource. "
+                    'Please try again or contact support if the issue persists.'
+                ),
+                'detail': str(error),
+            }),
             status=500,
         )
 
@@ -92,20 +89,10 @@ class DefaultErrorHandler(BaseErrorHandler):
     ) -> Response:
         response = Response(
             response=json_helpers.dumps({
-                'error': 'Something went wrong. Please contact Sinthy Support.'
+                'message': 'Something went wrong. Please contact Sinthy Support.',
+                'detail': str(error)
             }),
             status=500,
         )
 
         return response
-
-
-@app.errorhandler(Exception)
-def handle_error(error: Exception):
-    logger.error('Error', error_message=str(error), exc_info=True)
-    registry = get_error_handler_registry()
-
-    error_handler_type: type[BaseErrorHandler] = registry.get(error, DefaultErrorHandler)
-    error_handler = error_handler_type()
-
-    return error_handler.handle(error)

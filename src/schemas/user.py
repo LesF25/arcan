@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash
 
 from src.utils.types import OrderType, UserOrderFields, RoleName
 from .base import BaseCollectionRequestParams
-from .structures import Password, PasswordUpdate
+from src.structures import Password, PasswordUpdate
 
 
 class UserBaseModel(BaseModel):

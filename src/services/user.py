@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, Query
 from sqlalchemy import asc, desc, or_
 from werkzeug.security import generate_password_hash
 
-from src.models import RoleModel, ClientModel, UserModel
+from src.models import RoleModel, ClientModel, UserModel, EventModel
 from src.schemas.user import (
     CreateUserSchema,
     GetUserSchema,
@@ -129,6 +129,18 @@ class UserService:
         self.session.query(UserModel).filter(
             UserModel.id.in_(params.ids)
         ).delete()
+
+        (
+            self.session
+            .query(EventModel)
+            .filter(
+                EventModel.user_id.in_(params.ids),
+                EventModel.license_request_id.is_(None)  # удаляются все записи, кроме запросов лицензий
+            )
+            .update({
+                EventModel.user_id: self.DELETED_USER_ID,
+            })
+        )
 
         return True
 

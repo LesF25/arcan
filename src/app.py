@@ -62,4 +62,4 @@ class Application(Flask):
         rules: list[Rule],
     ) -> None:
         for rule in rules:
-            self.add_url_rule(**rule.as_dict())
+            self.add_url_rule(**rule.model_dump())

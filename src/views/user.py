@@ -9,10 +9,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from wsgi import app
 from src.structures import Rule
 from src.schemas.user import (
-    GetUserSchema,
-    CreateUserSchema,
-    UpdateUserSchema,
-    DeleteUserSchema,
+    UserGetSchema,
+    UserCreateSchema,
+    UserUpdateSchema,
+    UserDeleteSchema,
 )
 from src.services.user import UserService
 from src.utils import json_helpers
@@ -29,8 +29,8 @@ class BaseUserView(MethodView):
 
 
 class UserView(BaseUserView):
-    @validate(body=CreateUserSchema)
-    def post(self, body: CreateUserSchema) -> Response:
+    @validate(body=UserCreateSchema)
+    def post(self, body: UserCreateSchema) -> Response:
         with self._user_service as service:
             user = service.create_user(body)
             response = Response(
@@ -42,8 +42,8 @@ class UserView(BaseUserView):
 
             return response
 
-    @validate(query=GetUserSchema)
-    def get(self, query: GetUserSchema) -> Response:
+    @validate(query=UserGetSchema)
+    def get(self, query: UserGetSchema) -> Response:
         with self._user_service as service:
             total_page, users = service.get_users(query)
 
@@ -59,10 +59,10 @@ class UserView(BaseUserView):
 
             return response
 
-    @validate(query=DeleteUserSchema)
+    @validate(query=UserDeleteSchema)
     def delete(
         self,
-        query: DeleteUserSchema,
+        query: UserDeleteSchema,
     ) -> Response:
         with self._user_service as service:
             try:
@@ -96,10 +96,10 @@ class UserByIdView(BaseUserView):
 
             return response
 
-    @validate(body=UpdateUserSchema)
+    @validate(body=UserUpdateSchema)
     def patch(
         self,
-        body: UpdateUserSchema,
+        body: UserUpdateSchema,
         user_id: int,
     ) -> Response:
         with self._user_service as service:

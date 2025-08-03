@@ -7,11 +7,11 @@ from werkzeug.security import generate_password_hash
 
 from src.models import RoleModel, ClientModel, UserModel, EventModel
 from src.schemas.user import (
-    CreateUserSchema,
-    GetUserSchema,
+    UserCreateSchema,
+    UserGetSchema,
     UserResponseSchema,
-    UpdateUserSchema,
-    DeleteUserSchema,
+    UserUpdateSchema,
+    UserDeleteSchema,
 )
 from src.utils.mappers import UserMapper
 from src.utils.types import UserOrderFields, OrderType
@@ -25,7 +25,7 @@ class UserService:
 
     def create_user(
         self,
-        user_data: CreateUserSchema,
+        user_data: UserCreateSchema,
     ) -> UserResponseSchema:
         hashed_password = generate_password_hash(
             user_data.password.password
@@ -49,7 +49,7 @@ class UserService:
 
     def get_users(
         self,
-        params: GetUserSchema,
+        params: UserGetSchema,
     ) -> tuple[int, list[UserResponseSchema]]:
         query = self._query
 
@@ -96,7 +96,7 @@ class UserService:
 
     def update_user(
         self,
-        user_data: UpdateUserSchema,
+        user_data: UserUpdateSchema,
         user_id: int,
     ) -> UserResponseSchema:
         user: UserModel = self._query.filter(UserModel.id == user_id).first()
@@ -124,7 +124,7 @@ class UserService:
 
     def delete_user(
         self,
-        params: DeleteUserSchema,
+        params: UserDeleteSchema,
     ) -> bool:
         self.session.query(UserModel).filter(
             UserModel.id.in_(params.ids)

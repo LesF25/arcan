@@ -43,7 +43,7 @@ class UserBaseModel(BaseModel):
         return self
 
 
-class CreateUserSchema(UserBaseModel):
+class UserCreateSchema(UserBaseModel):
     password: Password
 
 
@@ -55,7 +55,7 @@ class UserResponseSchema(UserBaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UpdateUserSchema(BaseModel):
+class UserUpdateSchema(BaseModel):
     login: Optional[str] = None
     password: Optional[PasswordUpdate] = None
     status: Optional[bool] = None
@@ -100,13 +100,13 @@ class UpdateUserSchema(BaseModel):
         return data
 
 
-class GetUserSchema(BaseCollectionRequestParams):
+class UserGetSchema(BaseCollectionRequestParams):
     order_by: Optional[
         dict[UserOrderFields, OrderType]
     ] = {'id': 'ASC'}
 
 
-class DeleteUserSchema(BaseModel):
+class UserDeleteSchema(BaseModel):
     ids: list[int]
 
     ROOT_USER_ID = 1

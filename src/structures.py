@@ -1,19 +1,14 @@
 from typing import Callable
-import dataclasses
 
 from pydantic import BaseModel, model_validator, ValidationError
 
 from src.utils.types import PasswordType
 
 
-@dataclasses.dataclass(frozen=True)
-class Rule:
+class Rule(BaseModel):
     rule: str
     view_func: Callable
     methods: list[str]
-
-    def as_dict(self) -> dict:
-        return dataclasses.asdict(self)
 
 
 class Password(BaseModel):

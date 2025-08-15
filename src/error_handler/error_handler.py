@@ -2,6 +2,7 @@ from typing import Callable
 
 from flask import Response
 from pydantic import ValidationError
+from jwt import InvalidTokenError
 
 from src.exception import DeleteError
 from src.utils import json_helpers
@@ -80,6 +81,24 @@ class DeleteErrorHandler(BaseErrorHandler):
         )
 
         return response
+
+
+@add_error_handler(InvalidTokenError)
+class AuthErrorHandler(BaseErrorHandler):
+    def handle(
+        self,
+        error: Exception,
+    ) -> Response:
+        response = Response(
+            response=json_helpers.dumps({
+                'message': '', # TODO
+                'detail': str(error)
+            }),
+            status=401,
+        )
+
+        return response
+
 
 
 class DefaultErrorHandler(BaseErrorHandler):

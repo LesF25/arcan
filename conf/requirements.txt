@@ -1,5 +1,7 @@
 Flask==3.1.1
 Flask-Pydantic==0.13.1 # dep: pydantic
+Flask-HTTPAuth==4.8.0
+flask-cors==6.0.1
 
 # Tests
 pytest==8.4.1
@@ -11,6 +13,7 @@ psycopg2==2.9.10
 redis==6.2.0
 
 # etc
+PyJWT==2.10.1
 phonenumbers==9.0.10
 structlog==25.4.0
 email_validator==2.2.0

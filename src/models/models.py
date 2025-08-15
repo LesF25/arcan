@@ -489,43 +489,6 @@ class UserModel(BaseModel):
     event: Mapped['EventModel'] = relationship(
         back_populates='user'
     )
-    user_session: Mapped['UserSessionModel'] = relationship(
-        back_populates='user',
-        cascade='all, delete-orphan'
-    )
     role: Mapped['RoleModel'] = relationship(
         back_populates='users',
-    )
-
-
-class UserSessionModel(BaseModel):
-    __tablename__ = 'user_sessions'
-
-    id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True,
-    )
-    token: Mapped[int] = mapped_column(
-        String,
-        unique=True,
-        nullable=False,
-    )
-    expired: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=(
-            datetime.now() + timedelta(days=7)
-        ),
-        nullable=False,
-    )
-
-    # FOREIGN KEYS
-    user_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey('users.id'),
-        nullable=False,
-    )
-
-    # RELATIONSHIPS
-    user: Mapped['UserModel'] = relationship(
-        back_populates='user_session',
     )

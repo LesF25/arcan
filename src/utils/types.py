@@ -1,6 +1,11 @@
-from typing import Annotated, Literal
+from typing import Annotated, Literal, TypeVar
 
 from pydantic import StringConstraints
+
+from src.services import BaseService
+
+
+ServiceType = TypeVar('ServiceType', bound=BaseService)
 
 UserOrderFields = Annotated[
     str,
@@ -32,5 +37,14 @@ RoleName = Annotated[
         'Client',
         'Administrator',
         'Operator'
+    ]
+]
+
+
+TokenType = Annotated[
+    str,
+    Literal[
+        'access',
+        'refresh'
     ]
 ]

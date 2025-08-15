@@ -1,12 +1,9 @@
-import contextlib
 from typing import Generator
 
 from flask import Response
-from flask.views import MethodView
 from flask_pydantic import validate
 from sqlalchemy.exc import SQLAlchemyError
 
-from wsgi import app
 from src.structures import Rule
 from src.schemas.user import (
     UserGetSchema,
@@ -18,20 +15,19 @@ from src.services.user import UserService
 from src.utils import json_helpers
 from src.exception import DeleteError
 from . import rules
+from .base import BaseView
 
 
-class BaseUserView(MethodView):
+class BaseUserView(BaseView):
     @property
-    @contextlib.contextmanager
-    def _user_service(self) -> Generator:
-        with app.database.session() as session:
-            yield UserService(session)
+    def _service(self) -> Generator[UserService, None, None]:
+        return self._get_service(UserService)
 
 
 class UserView(BaseUserView):
     @validate(body=UserCreateSchema)
     def post(self, body: UserCreateSchema) -> Response:
-        with self._user_service as service:
+        with self._service as service:
             user = service.create_user(body)
             response = Response(
                 status=200,
@@ -44,7 +40,7 @@ class UserView(BaseUserView):
 
     @validate(query=UserGetSchema)
     def get(self, query: UserGetSchema) -> Response:
-        with self._user_service as service:
+        with self._service as service:
             total_page, users = service.get_users(query)
 
             response = Response(
@@ -64,7 +60,7 @@ class UserView(BaseUserView):
         self,
         query: UserDeleteSchema,
     ) -> Response:
-        with self._user_service as service:
+        with self._service as service:
             try:
                 success = service.delete_user(query)
             except SQLAlchemyError as e:
@@ -85,7 +81,7 @@ class UserByIdView(BaseUserView):
         self,
         user_id: int,
     ) -> Response:
-        with self._user_service as service:
+        with self._service as service:
             user = service.get_user_by_id(user_id)
             response = Response(
                 status=200,
@@ -102,7 +98,7 @@ class UserByIdView(BaseUserView):
         body: UserUpdateSchema,
         user_id: int,
     ) -> Response:
-        with self._user_service as service:
+        with self._service as service:
             user = service.update_user(body, user_id)
             response = Response(
                 status=200,

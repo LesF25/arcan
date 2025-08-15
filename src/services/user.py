@@ -1,8 +1,8 @@
 import math
 from typing import Generator
 
-from sqlalchemy.orm import Session, Query
-from sqlalchemy import asc, desc, or_
+from sqlalchemy.orm import Query
+from sqlalchemy import asc, desc
 from werkzeug.security import generate_password_hash
 
 from src.models import RoleModel, ClientModel, UserModel, EventModel
@@ -13,15 +13,13 @@ from src.schemas.user import (
     UserUpdateSchema,
     UserDeleteSchema,
 )
+from src.services import BaseService
 from src.utils.mappers import UserMapper
 from src.utils.types import UserOrderFields, OrderType
 
 
-class UserService:
+class UserService(BaseService):
     DELETED_USER_ID = 2
-
-    def __init__(self, session: Session):
-        self.session = session
 
     def create_user(
         self,
@@ -36,8 +34,8 @@ class UserService:
                 'password': hashed_password,
             }
         )
-        self.session.add(user)
-        self.session.flush()
+        self._session.add(user)
+        self._session.flush()
 
         query = self._query.filter(
             UserModel.id == user.id
@@ -60,19 +58,18 @@ class UserService:
         total_page = math.ceil(query.count() / params.page_size)
 
         query = query.order_by(*self._get_order_columns(params.order_by))
-        query = (
+        users = (
             query
             .limit(params.page_size)
             .offset(
                 (params.page - 1) * params.page_size
             )
-        )
-        users = [
-            UserResponseSchema.from_orm(user)
-            for user in query.all()
-        ]
+        ).all()
 
-        return total_page, users
+        return total_page, [
+            UserResponseSchema.from_orm(user)
+            for user in users
+        ]
 
     def _get_order_columns(
         self,
@@ -117,8 +114,8 @@ class UserService:
         for key, val in data:
             setattr(user, key, val)
 
-        self.session.add(user)
-        self.session.flush()
+        self._session.add(user)
+        self._session.flush()
 
         return UserResponseSchema.from_orm(user)
 
@@ -126,12 +123,12 @@ class UserService:
         self,
         params: UserDeleteSchema,
     ) -> bool:
-        self.session.query(UserModel).filter(
+        self._session.query(UserModel).filter(
             UserModel.id.in_(params.ids)
         ).delete()
 
         (
-            self.session
+            self._session
             .query(EventModel)
             .filter(
                 EventModel.user_id.in_(params.ids),
@@ -147,7 +144,7 @@ class UserService:
     @property
     def _query(self) -> Query:
         return (
-            self.session.query(
+            self._session.query(
                 UserModel,
                 RoleModel.name.label('role_name'),
                 ClientModel.name.label('client_name'),

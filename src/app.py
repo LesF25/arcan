@@ -1,8 +1,8 @@
-from typing import Optional
-
 import structlog
 from flask import Flask, Response
+from flask_cors import CORS
 from sqlalchemy import make_url
+from redis import Redis, from_url
 
 from config import BaseConfig
 from .error_handler import get_handler_by_error
@@ -18,11 +18,15 @@ class Application(Flask):
         self,
         import_name: str,
         database: SQLAlchemyDB,
+        redis: Redis,
         config: type[BaseConfig],
     ) -> None:
         super().__init__(import_name)
         self.config.from_object(config)
         self.database = database
+        self.redis = redis
+
+        CORS(self)
 
     @classmethod
     def init(
@@ -35,11 +39,15 @@ class Application(Flask):
             base_model=BaseModel,
         )
 
+        redis = from_url(config.REDIS_URI)
+
         instance = cls(
             import_name=__name__,
             database=db,
+            redis=redis,
             config=config,
         )
+
         instance._register_error_handler()
         instance._add_url_rules(rules)
 
